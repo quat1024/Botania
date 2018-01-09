@@ -88,20 +88,7 @@ public class ItemTwigWand extends Item16Colors implements ICoordBoundItem {
 				return BlockEnchanter.handleCreation(player, world, pos);
 			}
 			
-			//Handle creating a force relay pair
-			if(((BlockPistonRelay) ModBlocks.pistonRelay).playerPositions.containsKey(player.getUniqueID()) && !world.isRemote) {
-				BlockPistonRelay.DimWithPos bindPos = ((BlockPistonRelay) ModBlocks.pistonRelay).playerPositions.get(player.getUniqueID());
-				BlockPistonRelay.DimWithPos currentPos = new BlockPistonRelay.DimWithPos(world.provider.getDimension(), pos);
-				
-				((BlockPistonRelay) ModBlocks.pistonRelay).playerPositions.remove(player.getUniqueID());
-				((BlockPistonRelay) ModBlocks.pistonRelay).mappedPositions.put(bindPos, currentPos);
-				BlockPistonRelay.WorldData.get(world).markDirty();
-				
-				world.playSound(null, player.posX, player.posY, player.posZ, ModSounds.ding, SoundCategory.PLAYERS, 1F, 1F);
-				return EnumActionResult.SUCCESS;
-			}
-			
-			//Handle general IWandable clicks
+			//Handle general IWandable clicks??
 			if(block instanceof IWandable) {
 				TileEntity tile = world.getTileEntity(pos);
 				boolean bindable = tile instanceof IWandBindable;
@@ -133,6 +120,7 @@ public class ItemTwigWand extends Item16Colors implements ICoordBoundItem {
 				setBoundTile(stack, UNBOUND_POS);
 				return EnumActionResult.SUCCESS;
 			}
+			
 			//Try to complete a binding
 			if(boundPos.getY() != -1 && boundTile instanceof IWandBindable) {
 				if(((IWandBindable) boundTile).bindTo(player, stack, pos, side)) {
@@ -144,7 +132,15 @@ public class ItemTwigWand extends Item16Colors implements ICoordBoundItem {
 						Vector3 end = new Vector3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
 						doParticleBeam(world, orig, end);
 					}
+					
+					return EnumActionResult.SUCCESS;
 				}
+			}
+			
+			//Handle binding a force relay to something
+			if(!world.isRemote && ((BlockPistonRelay) ModBlocks.pistonRelay).onPairCompleted(player, world, pos)) { 
+				world.playSound(null, player.posX, player.posY, player.posZ, ModSounds.ding, SoundCategory.PLAYERS, 1F, 1F);
+				return EnumActionResult.SUCCESS;
 			}
 		}
 

@@ -124,16 +124,28 @@ public class BlockPistonRelay extends BlockMod implements IWandable, ILexiconabl
 		if(player == null || world.isRemote)
 			return false;
 
-		if(!player.isSneaking()) {
-			playerPositions.put(player.getUniqueID(), new DimWithPos(world.provider.getDimension(), pos));
-			world.playSound(null, pos, ModSounds.ding, SoundCategory.BLOCKS, 0.5F, 1F);
-		} else {
-			spawnAsEntity(world, pos, new ItemStack(this));
-			world.setBlockToAir(pos);
-			world.playEvent(2001, pos, Block.getStateId(getDefaultState()));
-		}
+		playerPositions.put(player.getUniqueID(), new DimWithPos(world.provider.getDimension(), pos));
+		world.playSound(null, pos, ModSounds.ding, SoundCategory.BLOCKS, 0.5F, 1F);
 
 		return true;
+	}
+	
+	public boolean onPairCompleted(EntityPlayer player, World world, BlockPos boundLocation) {
+		BlockPistonRelay inst = (BlockPistonRelay) ModBlocks.pistonRelay;
+		
+		if(inst.playerPositions.containsKey(player.getUniqueID())) {
+			
+			DimWithPos relayPos = inst.playerPositions.get(player.getUniqueID());
+			DimWithPos newBindPos = new DimWithPos(world.provider.getDimension(), boundLocation);
+			
+			((BlockPistonRelay) ModBlocks.pistonRelay).playerPositions.remove(player.getUniqueID());
+			((BlockPistonRelay) ModBlocks.pistonRelay).mappedPositions.put(relayPos, newBindPos);
+			BlockPistonRelay.WorldData.get(world).markDirty();
+			
+			return true;
+		}
+		
+		return false;
 	}
 
 	@SubscribeEvent
