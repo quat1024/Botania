@@ -18,13 +18,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.*;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
@@ -36,11 +35,16 @@ import vazkii.botania.api.state.BotaniaStateProps;
 import vazkii.botania.api.wand.IWandHUD;
 import vazkii.botania.api.wand.IWandable;
 import vazkii.botania.client.core.handler.ModelHandler;
+import vazkii.botania.common.Botania;
 import vazkii.botania.common.block.BlockMod;
+import vazkii.botania.common.block.ModBlocks;
 import vazkii.botania.common.block.tile.TileEnchanter;
+import vazkii.botania.common.core.handler.ModSounds;
+import vazkii.botania.common.core.helper.PlayerHelper;
 import vazkii.botania.common.item.ModItems;
 import vazkii.botania.common.lexicon.LexiconData;
 import vazkii.botania.common.lib.LibBlockNames;
+import vazkii.botania.common.lib.LibMisc;
 
 import javax.annotation.Nonnull;
 import java.util.Random;
@@ -150,6 +154,40 @@ public class BlockEnchanter extends BlockMod implements IWandable, ILexiconable,
 	public boolean onUsedByWand(EntityPlayer player, ItemStack stack, World world, BlockPos pos, EnumFacing side) {
 		((TileEnchanter) world.getTileEntity(pos)).onWanded(player, stack);
 		return true;
+	}
+	
+	public static EnumActionResult handleCreation(EntityPlayer player, World world, BlockPos pos) {
+		EnumFacing.Axis axis = null;
+		if(TileEnchanter.canEnchanterExist(world, pos, EnumFacing.Axis.X))
+			axis = EnumFacing.Axis.X;
+		else if(TileEnchanter.canEnchanterExist(world, pos, EnumFacing.Axis.Z))
+			axis = EnumFacing.Axis.Z;
+		
+		if(axis != null) {
+			if(!world.isRemote) {
+				world.setBlockState(pos, ModBlocks.enchanter.getDefaultState().withProperty(BotaniaStateProps.ENCHANTER_DIRECTION, axis), 1 | 2);
+				world.playSound(null, pos, ModSounds.enchanterForm, SoundCategory.BLOCKS, 0.5F, 0.6F);
+				PlayerHelper.grantCriterion((EntityPlayerMP) player, new ResourceLocation(LibMisc.MOD_ID, "main/enchanter_make"), "code_triggered");
+			} else {
+				for(int i = 0; i < 50; i++) {
+					float red = (float) Math.random();
+					float green = (float) Math.random();
+					float blue = (float) Math.random();
+					
+					double x = (Math.random() - 0.5) * 6;
+					double y = (Math.random() - 0.5) * 6;
+					double z = (Math.random() - 0.5) * 6;
+					
+					float velMul = 0.07F;
+					
+					Botania.proxy.wispFX(pos.getX() + 0.5 + x, pos.getY() + 0.5 + y, pos.getZ() + 0.5 + z, red, green, blue, (float) Math.random() * 0.15F + 0.15F, (float) -x * velMul, (float) -y * velMul, (float) -z * velMul);
+				}
+			}
+			
+			return EnumActionResult.SUCCESS;
+		}
+		
+		return EnumActionResult.FAIL;
 	}
 
 	@Override

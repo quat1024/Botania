@@ -135,8 +135,6 @@ public final class HUDHandler {
 
 				if(PlayerHelper.hasAnyHeldItem(mc.player)) {
 					if(pos != null && PlayerHelper.hasHeldItem(mc.player, ModItems.twigWand)) {
-						renderWandModeDisplay(PlayerHelper.getFirstHeldItem(mc.player, ModItems.twigWand), event.getResolution());
-
 						if(block instanceof IWandHUD) {
 							profiler.startSection("wandItem");
 							((IWandHUD) block).renderHUD(mc, event.getResolution(), mc.world, pos.getBlockPos());
@@ -261,29 +259,6 @@ public final class HUDHandler {
 
 			GlStateManager.color(1F, 1F, 1F, 1F);
 		}
-	}
-
-	private static void renderWandModeDisplay(ItemStack stack, ScaledResolution res) {
-		Minecraft mc = Minecraft.getMinecraft();
-		Profiler profiler = mc.mcProfiler;
-
-		profiler.startSection("wandMode");
-		int ticks = mc.ingameGUI.remainingHighlightTicks;
-		ticks -= 15;
-		if(ticks > 0) {
-			int alpha = Math.min(255, (int) (ticks * 256.0F / 10.0F));
-			int color = 0x00CC00 + (alpha << 24);
-			String disp = I18n.format(ItemTwigWand.getModeString(stack));
-
-			int x = res.getScaledWidth() / 2 - mc.fontRenderer.getStringWidth(disp) / 2;
-			int y = res.getScaledHeight() - 70;
-
-			GlStateManager.enableBlend();
-			GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-			mc.fontRenderer.drawStringWithShadow(disp, x, y, color);
-			GlStateManager.disableBlend();
-		}
-		profiler.endSection();
 	}
 
 	private static void renderManaInvBar(ScaledResolution res, boolean hasCreative, int totalMana, int totalMaxMana) {
